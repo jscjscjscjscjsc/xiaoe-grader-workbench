@@ -24,6 +24,10 @@ npm run dev
 
 双击 `启动临时网页.bat`。脚本会启动本地工作台、建立 Cloudflare Quick Tunnel、自动打开新网页地址，并将地址写入 `dist/latest-url.txt`。Quick Tunnel 失效后再次双击即可重新生成地址。
 
+### 面向老师的首次安装
+
+老师下载仓库压缩包并解压后，双击 `安装并启动.bat`。安装程序只会询问一次机构 API Key，其余步骤会自动完成：下载便携 Node、安装依赖、准备扩展包、下载 Cloudflare 工具、在桌面创建 `Xiaoe Grader` 启动入口，并打开扩展管理页。Chrome/Edge 安全规则要求老师首次手动选择一次 `extension/` 文件夹完成“加载已解压的扩展程序”；之后只需双击桌面入口。
+
 ## 在线部署
 
 本仓库附带 `render.yaml`。在 Render 新建 Blueprint，选择本仓库后，设置 `XIAOE_GRADER_MODEL_API_KEY`，即可得到固定的 `https://<服务名>.onrender.com` 工作台地址。扩展已允许 `*.onrender.com` 工作台域名。

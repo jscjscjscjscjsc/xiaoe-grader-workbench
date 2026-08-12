@@ -4,18 +4,20 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $dist = Join-Path $root 'dist'
 $cloudflared = Join-Path $dist 'cloudflared-386.exe'
+$node = Join-Path $root 'runtime\node\node.exe'
 $log = Join-Path $dist 'cloudflared.err.log'
 $urlFile = Join-Path $dist 'latest-url.txt'
 
 if (-not (Test-Path -LiteralPath $cloudflared)) {
   throw "Cloudflared executable not found: $cloudflared"
 }
+if (-not (Test-Path -LiteralPath $node)) { $node = 'node.exe' }
 
 Get-Process -Name 'cloudflared-386' -ErrorAction SilentlyContinue | Stop-Process -Force
 
 $service = Get-NetTCPConnection -LocalPort 4317 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
 if (-not $service) {
-  Start-Process -FilePath 'node.exe' -ArgumentList 'src/server.mjs' -WorkingDirectory $root -WindowStyle Hidden
+  Start-Process -FilePath $node -ArgumentList 'src/server.mjs' -WorkingDirectory $root -WindowStyle Hidden
   $ready = $false
   for ($i = 0; $i -lt 20; $i++) {
     Start-Sleep -Milliseconds 500

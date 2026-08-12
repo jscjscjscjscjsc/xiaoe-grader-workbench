@@ -9,7 +9,10 @@ import { readSubmissionPage } from './web-reader.mjs';
 import { checkModelHealth, evaluateSubmission } from './model-provider.mjs';
 import { evaluationCacheKey, getCachedEvaluation, setCachedEvaluation } from './evaluation-cache.mjs';
 import { classifyFailure, retry } from './recovery.mjs';
+import { loadLocalEnv } from './config.mjs';
 
+const ROOT_DIR = join(import.meta.dirname, '..');
+loadLocalEnv(ROOT_DIR);
 const PORT = Number(process.env.PORT || 4317);
 const app = express();
 app.use((req, res, next) => {
