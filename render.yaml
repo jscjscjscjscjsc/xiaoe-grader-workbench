@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: xiaoe-grader-workbench
+    runtime: node
+    buildCommand: npm ci && npm run package-extension
+    startCommand: npm start
+    envVars:
+      - key: XIAOE_GRADER_MODEL_BASE_URL
+        value: https://api.anmoxuan.xyz/v1
+      - key: XIAOE_GRADER_MODEL_NAME
+        value: gpt-5.6-terra
+      - key: XIAOE_GRADER_MODEL_API_KEY
+        sync: false

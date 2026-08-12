@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "小鹅通智能批改助手",
+  "version": "0.1.0",
+  "description": "在老师已登录的小鹅通作业页面中读取提交并填写老师点评。",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["https://admin.xiaoe-tech.com/*", "http://127.0.0.1/*", "http://localhost/*", "https://*.trycloudflare.com/*", "https://*.onrender.com/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "content_scripts": [
+    { "matches": ["https://admin.xiaoe-tech.com/t/exam/exercise*"], "js": ["xiaoe-content.js"], "run_at": "document_idle" },
+    { "matches": ["http://127.0.0.1/*", "http://localhost/*", "https://*.trycloudflare.com/*", "https://*.onrender.com/*"], "js": ["workbench-bridge.js"], "run_at": "document_idle" }
+  ],
+  "action": { "default_title": "小鹅通智能批改助手" }
+}

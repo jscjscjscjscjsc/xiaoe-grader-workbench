@@ -1,0 +1,15 @@
+{
+  "name": "xiaoe-grader-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/server.mjs",
+    "start": "node src/server.mjs",
+    "test": "node --test test/*.test.mjs",
+    "package-extension": "powershell -NoProfile -Command \"New-Item -ItemType Directory -Force dist | Out-Null; Compress-Archive -Path extension\\* -DestinationPath dist\\xiaoe-grader-extension.zip -Force\""
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

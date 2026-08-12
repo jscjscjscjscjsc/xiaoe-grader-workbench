@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>小鹅通智能批改</title><link rel="stylesheet" href="/styles.css" /></head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">X</span><div><strong>小鹅通智能批改</strong><span>技术课程作业工作台</span></div></div>
+        <div id="connection" class="connection"><i></i><span>本地服务已连接</span></div>
+      </header>
+      <section id="extension-alert" class="extension-alert"><div><b>安装浏览器扩展后即可使用</b><span id="extension-copy">首次安装一次，扩展只在小鹅通作业页读取提交并填写老师点评。</span></div><a id="install-link" href="#install">安装扩展</a></section>
+      <section id="setup" class="setup-layout">
+        <div class="intro"><p class="eyebrow">AUTONOMOUS GRADING</p><h1>把批改规则交给系统，<br />把时间还给教学。</h1><p>自动读取学生公开技术博客的文字与代码，按你的标准生成有依据的差异化点评，并只写入小鹅通的“老师点评”。</p><div class="capabilities"><span>公开网页文本</span><span>代码块分析</span><span>实时进度</span><span>自动提交</span></div></div>
+        <form id="task-form" class="task-form">
+          <div class="form-title"><div><h2>创建批改任务</h2><p>登录由老师本人完成，系统不会保存 API Key。</p></div><span class="local">本地运行</span></div>
+          <label>小鹅通学生作业地址<input required name="xiaoeUrl" type="url" placeholder="https://admin.xiaoe-tech.com/t/exam/exercise#/exercise/commit_detail?..." /></label>
+          <label>批改要求<textarea required name="rubric" rows="7" placeholder="例如：这是 Linux 运维作业。重点核对命令是否正确、配置是否完整、是否有验证结果。按优秀、良好、合格评价；发现错误请指出具体题号或步骤。评语控制在 80 字内。"></textarea></label>
+          <div class="model-grid"><label>机构模型服务<input name="baseUrl" value="https://api.anmoxuan.xyz/v1" /></label><label>默认模型<input name="model" value="gpt-5.6-terra" /></label></div>
+          <details><summary>高级设置</summary><div class="advanced"><label>最多处理人数<input name="maxStudents" type="number" min="1" max="999" value="999" /></label><label>模型温度<input name="temperature" type="number" min="0" max="1" step="0.05" value="0.35" /></label></div><p>机构版本的密钥只保存在服务端，老师界面不会显示。图片作业需要支持视觉输入的模型；纯文本模型会如实提示补交文字材料。</p></details>
+          <label class="consent"><input required name="autoSubmit" type="checkbox" /><span>我确认已获得作业批改权限，并授权系统自动提交文字点评。</span></label>
+          <p id="form-error" class="form-error" role="alert"></p><button class="primary" type="submit">启动自动批改 <span>→</span></button>
+        </form>
+      </section>
+      <section id="workspace" class="workspace hidden">
+        <div class="workspace-head"><div><p class="eyebrow">ACTIVE TASK</p><h1 id="assignment-name">正在连接小鹅通</h1><p id="task-message">准备启动浏览器。</p></div><div class="actions"><a id="export" class="icon-link" title="导出结果">↓</a><button id="pause" class="pause" title="暂停任务">Ⅱ</button></div></div>
+        <section id="recovery-panel" class="recovery-panel hidden"><div><b>任务需要恢复</b><p id="recovery-detail"></p></div><button id="recover" class="recover">分析原因并继续</button></section>
+        <div class="progress-panel"><div class="progress-copy"><span id="percent">0%</span><strong id="progress-label">等待开始</strong></div><div class="track"><div id="bar"></div></div><div class="metrics"><div><b id="total">0</b><span>待批改</span></div><div><b id="done">0</b><span>已处理</span></div><div><b id="success">0</b><span>已提交</span></div><div><b id="review">0</b><span>需复核</span></div></div></div>
+        <div class="workspace-grid"><section class="feed"><div class="section-title"><h2>批改记录</h2><span id="status-pill" class="status-pill">准备中</span></div><div id="results" class="results"><div class="empty">任务启动后，这里会显示每位学生的等级、问题与已提交的点评。</div></div></section><aside class="timeline"><div class="section-title"><h2>执行动态</h2></div><div id="events" class="events"></div></aside></div>
+      </section>
+      <section id="install" class="install-guide"><div><p class="eyebrow">ONE-TIME SETUP</p><h2>首次使用，安装一次扩展</h2><p>扩展仅取得小鹅通作业页的页面权限，用于读取学生提交和填写文字点评。模型调用在工作台服务端完成。</p><a class="download-extension" href="/downloads/xiaoe-grader-extension.zip" download>下载浏览器扩展</a></div><ol><li>下载扩展压缩包，解压到本机。</li><li>打开 Chrome 或 Edge 的“扩展程序”，开启开发者模式。</li><li>点击“加载已解压的扩展程序”，选择解压后的扩展目录。</li><li>返回本页面，状态显示“扩展已连接”后创建任务。</li></ol></section>
+    </main><script src="/app.js"></script>
+  </body>
+</html>

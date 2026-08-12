@@ -1,0 +1,17 @@
+node_modules/
+.xiaoe-grader/
+.env
+*.log
+coverage/
+dist/
+diagnose-provider.mjs
+probe-model-candidates.mjs
+test-terra-vision-base64.mjs
+verify-open-first-review.mjs
+inspect-*.mjs
+capture_*.mjs
+sync_submit_one.mjs
+xiaoe_grade_cdp.mjs
+work/
+outputs/
+*.png
