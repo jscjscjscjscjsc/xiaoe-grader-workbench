@@ -20,6 +20,10 @@ npm run dev
 
 浏览器打开 `http://127.0.0.1:4317`。页面会提供扩展下载链接：解压后在 Chrome/Edge 的扩展程序页开启开发者模式，选择“加载已解压的扩展程序”，指向 `extension/` 目录。扩展连接后，填入小鹅通学生作业链接和批改要求，点击“开始自动批改”。扫码后若进入店铺列表，选择对应店铺即可，扩展会自动回到原作业链接。
 
+### 一键临时网页
+
+双击 `启动临时网页.bat`。脚本会启动本地工作台、建立 Cloudflare Quick Tunnel、自动打开新网页地址，并将地址写入 `dist/latest-url.txt`。Quick Tunnel 失效后再次双击即可重新生成地址。
+
 ## 在线部署
 
 本仓库附带 `render.yaml`。在 Render 新建 Blueprint，选择本仓库后，设置 `XIAOE_GRADER_MODEL_API_KEY`，即可得到固定的 `https://<服务名>.onrender.com` 工作台地址。扩展已允许 `*.onrender.com` 工作台域名。

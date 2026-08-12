@@ -15,3 +15,5 @@ xiaoe_grade_cdp.mjs
 work/
 outputs/
 *.png
+dist/*.log
+dist/latest-url.txt
