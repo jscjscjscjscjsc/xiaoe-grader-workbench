@@ -1,9 +1,11 @@
 node_modules/
 .xiaoe-grader/
 .env
+runtime/
 *.log
 coverage/
-dist/
+dist/*
+!dist/xiaoe-grader-extension.zip
 diagnose-provider.mjs
 probe-model-candidates.mjs
 test-terra-vision-base64.mjs
