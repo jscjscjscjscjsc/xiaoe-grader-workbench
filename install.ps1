@@ -11,7 +11,6 @@ $runtime = Join-Path $root 'runtime'
 $nodeDir = Join-Path $runtime 'node'
 $nodeExe = Join-Path $nodeDir 'node.exe'
 $npmCmd = Join-Path $nodeDir 'npm.cmd'
-$cloudflared = Join-Path $root 'dist\cloudflared-386.exe'
 $envFile = Join-Path $root '.env'
 
 function Write-Step([string]$message) { Write-Host "[Xiaoe Grader] $message" -ForegroundColor Cyan }
@@ -32,11 +31,6 @@ if (-not (Test-Path -LiteralPath $nodeExe)) {
   $source = Get-ChildItem -LiteralPath $extract -Directory | Select-Object -First 1
   Move-Item -LiteralPath $source.FullName -Destination $nodeDir -Force
   Remove-Item -LiteralPath $zip, $extract -Recurse -Force -ErrorAction SilentlyContinue
-}
-
-if (-not (Test-Path -LiteralPath $cloudflared)) {
-  Write-Step 'Downloading Cloudflare tunnel tool...'
-  Download-File 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-386.exe' $cloudflared
 }
 
 if (-not (Test-Path -LiteralPath $envFile)) {
@@ -66,13 +60,12 @@ $link.Save()
 
 Write-Host ''
 Write-Host 'Installation complete.' -ForegroundColor Green
-Write-Host 'One final browser step is required:' -ForegroundColor Yellow
-Write-Host 'On the Extensions page, enable Developer mode, click Load unpacked, then choose:'
+Write-Host 'You can now start grading from the desktop shortcut.' -ForegroundColor Green
+Write-Host 'Optional: to use browser-internal execution later, load this extension folder in Chrome or Edge:' -ForegroundColor Yellow
 Write-Host (Join-Path $root 'extension') -ForegroundColor Cyan
 Write-Host ''
 
 if (-not $NoBrowser) {
-  Start-Process 'chrome://extensions/'
   Start-Process (Join-Path $root 'start-local.bat')
 }
 
