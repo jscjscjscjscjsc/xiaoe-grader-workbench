@@ -14,7 +14,7 @@ function setExtensionState(ready) {
   $('#extension-alert').classList.toggle('connected', ready);
   $('#extension-alert').classList.toggle('standalone', !ready);
   $('#extension-copy').textContent = ready
-    ? '扩展已连接。创建任务后会自动打开老师的小鹅通作业页。'
+    ? '扩展已连接，但任务默认使用独立 Chrome，避免扩展或当前浏览器标签页卡住。'
     : '未连接扩展。创建任务会自动使用独立浏览器模式；安装扩展后可改用浏览器内执行。';
   $('#install-link').textContent = ready ? '扩展已连接' : '扩展安装说明';
 }
@@ -32,14 +32,16 @@ async function checkModelHealth() {
 $('#task-form').addEventListener('submit', async event => {
   event.preventDefault();
   const f = new FormData(event.currentTarget);
-  const execution = extensionReady ? 'extension' : 'server';
+  // The independent Chrome runner is the stable default across Doubao, Chrome,
+  // Edge, and the in-app browser. The extension remains optional and is not
+  // allowed to strand a task in waiting_extension.
+  const execution = 'server';
   const payload = { xiaoeUrl: f.get('xiaoeUrl'), rubric: f.get('rubric'), autoSubmit: f.get('autoSubmit') === 'on', maxStudents: Number(f.get('maxStudents')), execution, model: { baseUrl: f.get('baseUrl'), model: f.get('model'), temperature: Number(f.get('temperature')) } };
   $('#form-error').textContent = '';
   try {
     const response = await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || '创建任务失败。');
-    if (execution === 'extension') window.postMessage({ source: 'xiaoe-grader-workbench', type: 'start', task: { id: data.id, targetUrl: payload.xiaoeUrl, workspaceUrl: window.location.origin } }, window.location.origin);
     showTask(data);
   } catch (error) { $('#form-error').textContent = error.message; }
 });

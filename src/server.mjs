@@ -143,6 +143,16 @@ app.post('/api/tasks/:id/analyze-and-continue', (req, res) => {
   runTask(task, true, Boolean(req.body?.dryRun)).catch(error => failTask(task, error));
   res.json(publicTask(task));
 });
+app.post('/api/tasks/:id/fallback-browser', (req, res) => {
+  const task = tasks.get(req.params.id);
+  if (!task) return res.status(404).json({ error: '任务不存在或服务已重启。' });
+  if (task.status !== 'waiting_extension') return res.status(409).json({ error: `任务当前状态为 ${task.status}，无需切换执行方式。` });
+  task.status = 'recovering'; task.error = null;
+  emit(task, 'recovering', { message: '浏览器扩展未开始执行，已切换到独立 Chrome 模式。' });
+  persistTask(task);
+  runTask(task, true, false).catch(error => failTask(task, error));
+  res.json(publicTask(task));
+});
 app.post('/api/tasks/:id/evaluate', async (req, res) => {
   const task = tasks.get(req.params.id);
   if (!task) return res.status(404).json({ error: '任务不存在。' });

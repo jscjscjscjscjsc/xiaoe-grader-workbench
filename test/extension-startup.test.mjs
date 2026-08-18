@@ -23,7 +23,7 @@ test('extension startup survives Xiaoe login and reports failures to the task', 
 
 test('workbench falls back to the independent browser when no extension is connected', async () => {
   const [app, index] = await Promise.all([read('public/app.js'), read('public/index.html')]);
-  assert.match(app, /const execution = extensionReady \? 'extension' : 'server'/);
-  assert.match(app, /if \(execution === 'extension'\) window\.postMessage/);
+  assert.match(app, /const execution = 'server'/);
+  assert.doesNotMatch(app, /execution === 'extension'\) window\.postMessage/);
   assert.match(index, /独立浏览器模式可直接使用/);
 });
