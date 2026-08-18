@@ -20,3 +20,10 @@ test('extension startup survives Xiaoe login and reports failures to the task', 
   assert.match(content, /chrome\.runtime\.sendMessage\(\{ type: 'content-ready' \}\)/);
   assert.match(content, /state\.ready && state\.unreviewed !== null/);
 });
+
+test('workbench falls back to the independent browser when no extension is connected', async () => {
+  const [app, index] = await Promise.all([read('public/app.js'), read('public/index.html')]);
+  assert.match(app, /const execution = extensionReady \? 'extension' : 'server'/);
+  assert.match(app, /if \(execution === 'extension'\) window\.postMessage/);
+  assert.match(index, /独立浏览器模式可直接使用/);
+});
