@@ -176,6 +176,18 @@ app.post('/api/tasks/:id/initialize', (req, res) => {
   persistTask(task);
   res.json(publicTask(task));
 });
+app.post('/api/tasks/:id/extension-failed', (req, res) => {
+  const task = tasks.get(req.params.id);
+  if (!task) return res.status(404).json({ error: '任务不存在。' });
+  if (['completed', 'paused'].includes(task.status)) return res.json(publicTask(task));
+  const error = new Error(String(req.body?.error || '浏览器扩展执行失败。').slice(0, 500));
+  const failure = classifyFailure(error);
+  task.status = 'recovery_needed'; task.error = failure.message;
+  task.failure = { ...failure, at: new Date().toISOString(), checkpoint: { ...task.checkpoint } };
+  emit(task, 'recovery_needed', { message: `扩展在${task.checkpoint?.phase || '启动'}阶段暂停：${failure.message}`, failure: task.failure });
+  persistTask(task);
+  res.json(publicTask(task));
+});
 app.post('/api/tasks/:id/record', (req, res) => {
   const task = tasks.get(req.params.id);
   if (!task) return res.status(404).json({ error: '任务不存在。' });
@@ -222,7 +234,9 @@ async function runTask(task, resuming = false, dryRun = false) {
     const initial = await adapter.getCommitState();
     if (resuming && reconcilePendingSubmission(task, initial)) persistTask(task);
     task.assignment = initial.assignment || '当前作业';
-    const modelHealth = await checkModelHealth(task.config.model, { probe: true });
+    // The relay's chat route can have short cold-start stalls. Configuration is
+    // verified here; the per-student evaluation below owns retriable requests.
+    const modelHealth = await checkModelHealth(task.config.model);
     if (!modelHealth.ok) throw new Error(modelHealth.message);
     task.progress.total = Math.max(task.progress.total, task.progress.completed + (initial.unreviewed ?? 0));
     task.status = 'running'; emit(task, 'running', { message: `已进入${task.assignment}，发现 ${task.progress.total} 位未点评学生。` });
@@ -302,7 +316,7 @@ async function processOneStudent(task, adapter, dryRun = false) {
   let evaluation = getCachedEvaluation(cacheKey);
   if (evaluation) emit(task, 'cache_hit', { message: '命中本地内容缓存，已复用同规则下的历史评价。' });
   else {
-    evaluation = await retry(() => evaluateSubmission({ rubric: task.config.rubric, submission, web, model: task.config.model }), retryOptions(task, '调用批改模型', 2));
+    evaluation = await retry(() => evaluateSubmission({ rubric: task.config.rubric, submission, web, model: task.config.model }), retryOptions(task, '调用批改模型', 4));
     setCachedEvaluation(cacheKey, evaluation);
   }
   const result = { student: submission.student, answerId: submission.answerId, source: web.source, url: web.url || null, status: evaluation.requiresReview ? 'review' : 'success', ...evaluation, at: new Date().toISOString() };

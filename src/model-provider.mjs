@@ -21,7 +21,7 @@ export async function evaluateSubmission({ rubric, submission, web, model }) {
     : prompt;
   let response = await fetch(endpoint, {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${model.apiKey}` },
-    body: JSON.stringify({ model: model.model, temperature: model.temperature, max_tokens: 450, response_format: { type: 'json_object' }, messages: [{ role: 'user', content }] }), signal: AbortSignal.timeout(25000)
+    body: JSON.stringify({ model: model.model, temperature: model.temperature, max_tokens: 450, response_format: { type: 'json_object' }, messages: [{ role: 'user', content }] }), signal: AbortSignal.timeout(45000)
   });
   // 纯文本模型通常会拒绝 image_url。此时不让整批任务失败，也不能伪造图片点评。
   if (!response.ok && imageUrls.length && [400, 415, 422].includes(response.status)) return imageModelUnavailable(response.status);
@@ -55,14 +55,21 @@ export async function checkModelHealth(model, { probe = false } = {}) {
   if (!model?.apiKey || !model?.baseUrl || !model?.model) return { ok: false, code: 'missing_configuration', message: '机构模型服务尚未配置密钥。' };
   if (!probe) return { ok: true, configured: true, message: '机构模型已配置，将在启动任务前验证可用性。' };
   const endpoint = chatCompletionsEndpoint(model.baseUrl);
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${model.apiKey}` },
-      body: JSON.stringify({ model: model.model, temperature: 0, max_tokens: 2, messages: [{ role: 'user', content: 'ping' }] }), signal: AbortSignal.timeout(8000)
-    });
-    if (response.ok) return { ok: true, message: '机构模型服务可用。' };
-    return { ok: false, code: `http_${response.status}`, message: `机构模型服务不可用（HTTP ${response.status}）：${providerMessage((await response.text()).slice(0, 500))}` };
-  } catch (error) { return { ok: false, code: 'network', message: `无法连接机构模型服务：${error.message}` }; }
+  let lastError = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${model.apiKey}` },
+        body: JSON.stringify({ model: model.model, temperature: 0, max_tokens: 2, messages: [{ role: 'user', content: 'ping' }] }), signal: AbortSignal.timeout(20000)
+      });
+      if (response.ok) return { ok: true, message: '机构模型服务可用。' };
+      return { ok: false, code: `http_${response.status}`, message: `机构模型服务不可用（HTTP ${response.status}）：${providerMessage((await response.text()).slice(0, 500))}` };
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) await new Promise(resolve => setTimeout(resolve, 700));
+    }
+  }
+  return { ok: false, code: 'network', message: `无法连接机构模型服务：${lastError?.message || '请求超时'}` };
 }
 
 function providerMessage(body) {

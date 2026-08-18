@@ -3,9 +3,18 @@ let running = false;
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== 'run' || running) return;
   running = true;
-  run(message.task).catch(error => console.error('[xiaoe-grader]', error)).finally(() => { running = false; });
+  const task = message.task;
+  run(task).then(() => chrome.runtime.sendMessage({ type: 'task-finished', taskId: task.id }))
+    .catch(async error => {
+      console.error('[xiaoe-grader]', error);
+      try { await api(task, `/api/tasks/${task.id}/extension-failed`, { error: error?.message || String(error) }); } catch (reportError) { console.error('[xiaoe-grader] failure report', reportError); }
+      chrome.runtime.sendMessage({ type: 'task-failed', taskId: task.id });
+    })
+    .finally(() => { running = false; });
   sendResponse?.({ ok: true });
 });
+
+chrome.runtime.sendMessage({ type: 'content-ready' });
 
 async function run(task) {
   await waitFor(() => document.body?.innerText?.length > 200, 30000);
@@ -40,13 +49,18 @@ async function run(task) {
 
 function readCommitState() {
   const lines = (document.body.innerText || '').split('\n').map(s => s.trim()).filter(Boolean);
-  const raw = lines.find(s => /^未点评\(\d+\)$/.test(s)) || '未点评(0)';
-  return { assignment: (lines.find(s => s.startsWith('作业本：')) || '').replace('作业本：', '').trim(), unreviewed: Number(raw.match(/\d+/)?.[0] || 0) };
+  const tabs = lines.filter(s => /^(全部|未点评|已点评)\(\d+\)$/.test(s));
+  const raw = lines.find(s => /^未点评\(\d+\)$/.test(s));
+  const actionCount = Array.from(document.querySelectorAll('a,button,[role="button"]')).filter(el => {
+    const r = el.getBoundingClientRect(); return (el.innerText || el.textContent || '').trim() === '点评作业' && r.width > 0 && r.height > 0;
+  }).length;
+  return { ready: tabs.length >= 2, assignment: (lines.find(s => s.startsWith('作业本：')) || '').replace('作业本：', '').trim(), unreviewed: raw ? Number(raw.match(/\d+/)?.[0] || 0) : null, actionCount };
 }
 async function waitForCommitPage(target, timeout) {
   const start = Date.now();
   while (Date.now() - start < timeout) {
-    if (location.href.includes('/exercise/commit_detail') && readCommitState().unreviewed >= 0) return;
+    const state = readCommitState();
+    if (location.href.includes('/exercise/commit_detail') && state.ready && state.unreviewed !== null && (state.unreviewed === 0 || state.actionCount > 0)) return;
     if (!/chooseShop|LoginCard|login_wechat/.test(location.href)) await goTo(target);
     await delay(1000);
   }
@@ -55,7 +69,7 @@ async function waitForCommitPage(target, timeout) {
 async function selectUnreviewed() {
   const tab = Array.from(document.querySelectorAll('.ss-tabs-v2__item')).find(el => (el.textContent || '').trim().startsWith('未点评('));
   if (tab && !String(tab.className).includes('is-active')) tab.click();
-  await waitFor(() => findReviewAction(), 10000).catch(() => {});
+  await waitFor(() => findReviewAction(), 10000);
 }
 function findReviewAction(excluded = new Set()) {
   return Array.from(document.querySelectorAll('a,button,[role="button"]')).find(el => {

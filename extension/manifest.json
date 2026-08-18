@@ -7,7 +7,7 @@
   "host_permissions": ["https://admin.xiaoe-tech.com/*", "http://127.0.0.1/*", "http://localhost/*", "https://*.trycloudflare.com/*", "https://*.onrender.com/*"],
   "background": { "service_worker": "background.js", "type": "module" },
   "content_scripts": [
-    { "matches": ["https://admin.xiaoe-tech.com/t/exam/exercise*"], "js": ["xiaoe-content.js"], "run_at": "document_idle" },
+    { "matches": ["https://admin.xiaoe-tech.com/t/*"], "js": ["xiaoe-content.js"], "run_at": "document_idle" },
     { "matches": ["http://127.0.0.1/*", "http://localhost/*", "https://*.trycloudflare.com/*", "https://*.onrender.com/*"], "js": ["workbench-bridge.js"], "run_at": "document_idle" }
   ],
   "action": { "default_title": "小鹅通智能批改助手" }
